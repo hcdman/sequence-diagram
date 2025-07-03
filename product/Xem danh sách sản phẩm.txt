@@ -1,0 +1,66 @@
+title Xem và Lọc danh sách sản phẩm
+
+actor "Quản trị viên" as Admin
+participant "Trang sản phẩm" as ProductsPage
+participant "Bộ lọc tìm kiếm" as FilterSystem
+participant "API sản phẩm" as ProductAPI
+participant "API danh mục" as CategoryAPI
+database "Cơ sở dữ liệu" as Database
+
+Admin->ProductsPage: Truy cập trang quản lý sản phẩm (/products)
+ProductsPage->ProductsPage: Hiển thị màn hình đang tải
+
+note over ProductsPage: Tải dữ liệu ban đầu
+ProductsPage->ProductAPI: Lấy danh sách sản phẩm 
+ProductAPI->Database: SELECT sản phẩm với phân trang (page=1, size=6)
+Database-->>ProductAPI: Danh sách sản phẩm và tổng số trang
+ProductAPI-->>ProductsPage:Trả về danh sách sản phẩm
+
+ProductsPage->CategoryAPI: Lấy tất cả danh mục
+CategoryAPI->Database: SELECT tất cả danh mục
+Database-->>CategoryAPI: Danh sách danh mục
+CategoryAPI-->>ProductsPage: Trả về danh sách danh mục sản  phẩm
+
+ProductsPage->ProductAPI: Lấy danh sách size và màu sắc
+ProductAPI->Database: SELECT sizes và colors
+Database-->>ProductAPI: Danh sách size và màu
+ProductAPI-->>ProductsPage: Trả về danh sách size và màu
+
+ProductsPage->Admin: Hiển thị giao diện với bộ lọc và danh sách sản phẩm
+
+note over Admin: Sử dụng tính năng tìm kiếm
+Admin->ProductsPage: Nhập từ khóa vào ô tìm kiếm
+ProductsPage->FilterSystem: Thông tin tìm kiếm
+Admin->ProductsPage: Nhấn Enter hoặc nút tìm kiếm
+FilterSystem->ProductAPI: Gửi yêu cầu tìm kiếm sản phẩm
+ProductAPI->Database: SELECT với điều kiện WHERE name LIKE '%keyword%'
+Database-->>ProductAPI: Kết quả tìm kiếm
+ProductAPI-->>FilterSystem: Danh sách sản phẩm phù hợp
+FilterSystem->Admin: Hiển thị kết quả tìm kiếm
+
+note over Admin: Lọc theo danh mục
+Admin->ProductsPage: Chọn danh mục từ dropdown
+ProductsPage->FilterSystem: Chọn một danh mục
+FilterSystem->ProductAPI: Lấy thông tin sản phẩm với điều kiện category
+ProductAPI->Database: SELECT WHERE categoryId = selectedCategory
+Database-->>ProductAPI: Sản phẩm thuộc danh mục
+ProductAPI-->>FilterSystem: Cập nhật danh sách
+FilterSystem->Admin: Hiển thị sản phẩm đã lọc
+
+note over Admin: Lọc theo khoảng giá
+Admin->ProductsPage: Kéo thanh trượt điều chỉnh giá
+ProductsPage->FilterSystem: Khoảng giá đã chọn
+FilterSystem->ProductAPI: Lấy danh sách sản phẩm trong khoảng giá
+ProductAPI->Database: SELECT WHERE price BETWEEN minPrice AND maxPrice
+Database-->>ProductAPI: Sản phẩm trong khoảng giá
+ProductAPI-->>FilterSystem: Danh sách đã lọc theo giá
+FilterSystem->Admin: Hiển thị kết quả lọc
+
+note over Admin: Chuyển trang
+Admin->ProductsPage: Nhấn nút "Trang tiếp theo" hoặc số trang
+ProductsPage->FilterSystem: Thông tin trang
+FilterSystem->ProductAPI: Lấy thông tin sản phẩm với trang mới
+ProductAPI->Database: SELECT với OFFSET và LIMIT mới
+Database-->>ProductAPI: Dữ liệu trang mới
+ProductAPI-->>FilterSystem: Sản phẩm của trang mới
+FilterSystem->Admin: Hiển thị sản phẩm trang mới
