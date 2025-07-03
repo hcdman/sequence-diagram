@@ -1,0 +1,20 @@
+title Xem thông tin cá nhân Admin
+
+actor "Quản trị viên" as Admin
+participant "Trang thông tin cá nhân" as AboutPage
+participant "AuthContext" as AuthContext
+
+Admin->AboutPage: Truy cập trang thông tin cá nhân (/about)
+
+AboutPage->AuthContext: Lấy thông tin user từ context
+AuthContext->AboutPage: Trả về user object hiện tại
+AboutPage->Admin: Hiển thị thông tin cá nhân
+
+note over AboutPage: Hiển thị Profile Card
+AboutPage->Admin: Hiển thị ảnh đại diện 
+AboutPage->Admin: Hiển thị tên đầy đủ 
+AboutPage->Admin: Hiển thị vai trò 
+AboutPage->Admin: Hiển thị nút "Đổi mật khẩu"
+
+
+AboutPage->Admin: Hiển thị nút "Chỉnh sửa"

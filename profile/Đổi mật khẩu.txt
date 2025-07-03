@@ -1,0 +1,49 @@
+title Đổi mật khẩu Admin 
+
+actor "Quản trị viên" as Admin
+participant "Trang thông tin" as AboutPage
+participant "Form đổi mật khẩu" as ChangePasswordForm
+participant "API xác thực" as AuthAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->AboutPage: Nhấn nút "Đổi mật khẩu"
+AboutPage->ChangePasswordForm: Chuyển đến /about/change-password
+ChangePasswordForm->Admin: Hiển thị form đổi mật khẩu
+
+note over Admin: Nhập thông tin đổi mật khẩu
+Admin->ChangePasswordForm: Nhập mật khẩu hiện tại
+ChangePasswordForm->ChangePasswordForm:Cập nhật thông tin
+Admin->ChangePasswordForm: Nhập mật khẩu mới
+ChangePasswordForm->ChangePasswordForm: Cập nhật thông tin
+Admin->ChangePasswordForm: Xác nhận mật khẩu mới
+ChangePasswordForm->ChangePasswordForm: Cập nhật thông tin
+
+note over Admin: Validation và lưu
+Admin->ChangePasswordForm: Nhấn "Đổi mật khẩu"
+ChangePasswordForm->ChangePasswordForm: Kiểm tra validation
+
+alt Validation thành công
+    note over ChangePasswordForm: - Mật khẩu hiện tại không trống\n- Mật khẩu mới >= 6 ký tự\n- Mật khẩu xác nhận khớp với mật khẩu mới
+    ChangePasswordForm->AuthAPI: Đổi mật khẩu (changePassword)
+    AuthAPI->Database: Xác thực mật khẩu hiện tại
+    
+    alt Mật khẩu hiện tại đúng
+        Database->AuthAPI: Mật khẩu hiện tại chính xác
+        AuthAPI->Database: UPDATE password hash mới
+        Database-->>AuthAPI: Xác nhận đổi mật khẩu thành công
+        AuthAPI-->>ChangePasswordForm: Phản hồi thành công
+        ChangePasswordForm->Toast: "Đổi mật khẩu thành công!"
+        Toast->Admin: Hiển thị thông báo thành công
+        ChangePasswordForm->AboutPage: navigate('/about') - Quay về trang chính
+    else Mật khẩu hiện tại sai
+        Database-->>AuthAPI: Mật khẩu hiện tại không đúng
+        AuthAPI-->>ChangePasswordForm: Lỗi mật khẩu sai
+        ChangePasswordForm->Toast: "Mật khẩu hiện tại không chính xác"
+        Toast->Admin: Hiển thị thông báo lỗi màu đỏ
+        ChangePasswordForm->ChangePasswordForm: setSaving(false)
+    end
+else Validation thất bại
+    ChangePasswordForm->Toast: Hiển thị lỗi validation cụ thể
+    Toast->Admin: Thông báo lỗi (mật khẩu không khớp, quá ngắn, v.v.)
+end

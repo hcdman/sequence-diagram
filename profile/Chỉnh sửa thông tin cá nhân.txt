@@ -1,0 +1,48 @@
+title Chỉnh sửa thông tin cá nhân Admin
+
+actor "Quản trị viên" as Admin
+participant "Trang thông tin" as AboutPage
+participant "Form chỉnh sửa" as EditProfileForm
+participant "API người dùng" as UserAPI
+participant "AuthContext" as AuthContext
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->AboutPage: Nhấn nút "Chỉnh sửa" (Pencil icon)
+AboutPage->EditProfileForm: Chuyển đến /about/edit
+EditProfileForm->AuthContext: Lấy thông tin admin hiện tại
+AuthContext->EditProfileForm: Trả về dữ liệu admin
+
+EditProfileForm->Admin: Hiển thị form với dữ liệu đã có
+
+note over Admin: Cập nhật thông tin cá nhân
+Admin->EditProfileForm: Chỉnh sửa họ và tên
+EditProfileForm->EditProfileForm: Cập nhật thông tin
+Admin->EditProfileForm: Cập nhật số điện thoại
+EditProfileForm->EditProfileForm: Cập nhật thông tin
+Admin->EditProfileForm: Cập nhật chiều cao và cân nặng
+EditProfileForm->EditProfileForm: Cập nhật thông tin
+Admin->EditProfileForm: Cập nhật địa chỉ
+EditProfileForm->EditProfileForm: Cập nhật thông tin
+
+note over Admin: Lưu thay đổi
+Admin->EditProfileForm: Nhấn nút "Lưu thay đổi"
+EditProfileForm->EditProfileForm: Kiểm tra validation 
+
+alt Thông tin hợp lệ
+
+    EditProfileForm->UserAPI: Cập nhật thông tin
+    UserAPI->Database: UPDATE user SET các trường đã thay đổi
+    Database-->>UserAPI: Xác nhận cập nhật thành công
+    UserAPI-->>EditProfileForm: Thông tin user đã cập nhật
+    
+    EditProfileForm->AuthContext: Cập nhật thông tin trong context
+ 
+    EditProfileForm->Toast: "Cập nhật thông tin thành công!"
+    Toast->Admin: Hiển thị thông báo thành công màu xanh
+    EditProfileForm->AboutPage: navigate('/about') - Quay về trang thông tin
+    AboutPage->Admin: Hiển thị thông tin đã được cập nhật
+else Thông tin không hợp lệ
+    EditProfileForm->Toast: "Vui lòng điền đầy đủ thông tin bắt buộc"
+    Toast->Admin: Hiển thị thông báo validation lỗi
+end
