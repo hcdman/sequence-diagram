@@ -1,0 +1,55 @@
+title Thêm sản phẩm mới
+
+actor "Quản trị viên" as Admin
+participant "Trang danh sách sản phẩm" as ProductsPage
+participant "Bước 1: Thông tin sản phẩm" as AddProductInfo
+participant "Bước 2: Upload ảnh" as AddProductImage
+participant "Bước 3: Thêm biến thể" as AddVariants
+participant "API sản phẩm" as ProductAPI
+participant "API hình ảnh" as ImageAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->ProductsPage: Nhấn nút "Thêm sản phẩm"
+ProductsPage->AddProductInfo: Chuyển đến /products/add/information
+
+note over Admin: Bước 1 - Nhập thông tin cơ bản
+Admin->AddProductInfo: Nhập các thông tin cần thiết
+Admin->AddProductInfo: Nhấn "Tiếp theo"
+AddProductInfo->AddProductImage: Chuyển đến /products/add/images
+
+note over Admin: Bước 2 - Upload ảnh sản phẩm
+Admin->AddProductImage: Chọn nhiều ảnh từ máy tính
+Admin->AddProductImage: Chọn ảnh chính (thumbnail)
+Admin->AddProductImage: Nhấn "Tiếp theo"
+AddProductImage->AddVariants: Chuyển đến /products/add/variants
+
+note over Admin: Bước 3 - Thêm biến thể (màu sắc, kích thước)
+Admin->AddVariants: Chọn màu sắc, kích thước, và số lượng
+Admin->AddVariants: Nhấn "Thêm biến thể"
+Admin->AddVariants: Nhấn "Hoàn thành"
+
+note over AddVariants, Database: Xử lý lưu sản phẩm
+AddVariants->AddVariants:Hiển thị "Đang xử lý..."
+AddVariants->ImageAPI: Upload tất cả ảnh lên cloud
+ImageAPI->Database: Lưu ảnh lên cloud storage
+Database-->>ImageAPI: Trả về danh sách URL ảnh
+ImageAPI-->>AddVariants: Danh sách URL ảnh đã upload
+
+AddVariants->ProductAPI: Tạo sản phẩm mới 
+ProductAPI->Database: INSERT thông tin sản phẩm
+Database-->>ProductAPI: Trả về ID sản phẩm mới
+ProductAPI-->>AddVariants: Thông tin sản phẩm đã tạo
+
+AddVariants->ProductAPI: Lưu ảnh sản phẩm 
+ProductAPI->Database: Lưu liên kết ảnh với sản phẩm
+Database-->>ProductAPI: Xác nhận lưu ảnh
+
+AddVariants->ProductAPI: Lưu biến thể sản phẩm
+ProductAPI->Database: INSERT các biến thể (màu-size-số lượng)
+Database-->>ProductAPI: Xác nhận lưu biến thể
+
+AddVariants->Toast: "Thêm sản phẩm thành công!"
+Toast->Admin: Hiển thị thông báo màu xanh
+AddVariants->ProductsPage: Quay về danh sách sản phẩm (/products)
+ProductsPage->Admin: Hiển thị sản phẩm mới trong danh sách

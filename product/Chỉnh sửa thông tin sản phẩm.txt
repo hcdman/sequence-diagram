@@ -1,0 +1,76 @@
+title Chỉnh sửa sản phẩm - Hệ thống Quản lý
+
+actor "Quản trị viên" as Admin
+participant "Trang sản phẩm" as ProductsPage
+participant "Form chỉnh sửa thông tin" as EditProductInfo
+participant "Form chỉnh sửa ảnh" as EditProductImage
+participant "Form chỉnh sửa biến thể" as EditVariants
+participant "API sản phẩm" as ProductAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->ProductsPage: Nhấn nút "Chỉnh sửa" trên sản phẩm
+ProductsPage->EditProductInfo: Chuyển đến /products/edit/{id}/information
+
+note over EditProductInfo: Tải dữ liệu sản phẩm hiện tại
+EditProductInfo->EditProductInfo: Hiển thị màn hình đang tải
+EditProductInfo->ProductAPI: Lấy thông tin sản phẩm
+ProductAPI->Database: SELECT thông tin sản phẩm theo ID
+Database-->>ProductAPI: Dữ liệu sản phẩm chi tiết
+ProductAPI-->>EditProductInfo: Trả về thông tin sản phẩm
+
+EditProductInfo->ProductAPI: Lấy ảnh sản phẩm 
+ProductAPI->Database: SELECT danh sách ảnh của sản phẩm
+Database-->>ProductAPI: Danh sách ảnh hiện tại
+ProductAPI-->>EditProductInfo: Trả về thông tin hình ảnh
+
+EditProductInfo->ProductAPI: Lấy biến thể sản phẩm
+ProductAPI->Database: SELECT biến thể (màu-size-số lượng)
+Database-->>ProductAPI: Danh sách biến thể hiện tại
+ProductAPI-->>EditProductInfo: Trả về thông tin biến thể sản phẩm
+
+EditProductInfo->Admin: Hiển thị form với dữ liệu đã điền sẵn
+
+note over Admin: Chỉnh sửa thông tin
+Admin->EditProductInfo: Cập nhật tên, giá, mô tả
+
+Admin->EditProductInfo: Thay đổi trạng thái "Kích hoạt"/"Còn hàng"
+Admin->EditProductInfo: Nhấn "Tiếp theo"
+EditProductInfo->EditProductImage: Chuyển đến edit/images
+
+note over Admin: Chỉnh sửa ảnh
+Admin->EditProductImage: Thêm ảnh mới
+Admin->EditProductImage: Xóa ảnh cũ
+Admin->EditProductImage: Thay đổi ảnh chính
+Admin->EditProductImage: Nhấn "Tiếp theo"
+EditProductImage->EditVariants: Chuyển đến edit/variants
+
+note over Admin: Chỉnh sửa biến thể
+Admin->EditVariants: Thêm biến thể mới
+Admin->EditVariants: Cập nhật số lượng biến thể cũ
+Admin->EditVariants: Nhấn "Lưu thay đổi"
+
+note over EditVariants, Database: Cập nhật sản phẩm
+EditVariants->ProductAPI: Cập nhật thông tin sản phẩm
+ProductAPI->Database: UPDATE thông tin cơ bản
+Database-->>ProductAPI: Xác nhận cập nhật thông tin
+
+EditVariants->ProductAPI: Cập nhật ảnh sản phẩm 
+ProductAPI->Database: UPDATE danh sách ảnh
+Database-->>ProductAPI: Xác nhận cập nhật ảnh
+
+EditVariants->ProductAPI: Xóa ảnh đã chọn 
+ProductAPI->Database: DELETE ảnh không còn sử dụng
+Database-->>ProductAPI: Xác nhận xóa ảnh
+
+EditVariants->ProductAPI: Thêm biến thể mới
+ProductAPI->Database: INSERT biến thể mới
+Database-->>ProductAPI: Xác nhận thêm biến thể
+
+EditVariants->ProductAPI: Cập nhật biến thể cũ 
+ProductAPI->Database: UPDATE số lượng biến thể
+Database-->>ProductAPI: Xác nhận cập nhật biến thể
+
+EditVariants->Toast: "Cập nhật sản phẩm thành công!"
+Toast->Admin: Hiển thị thông báo thành công
+EditVariants->ProductsPage: Quay về danh sách sản phẩm
