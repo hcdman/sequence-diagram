@@ -1,0 +1,59 @@
+title Phân tích doanh thu
+
+actor "Quản trị viên" as Admin
+participant "Trang phân tích doanh thu" as RevenueAnalysisPage
+participant "Bộ chọn thời gian" as DatePicker
+participant "API thống kê" as StatisticsAPI
+participant "Thư viện Chart.js" as ChartJS
+database "Cơ sở dữ liệu" as Database
+
+Admin->RevenueAnalysisPage: Truy cập trang phân tích doanh thu (/statistics/revenue-analysis)
+
+note over RevenueAnalysisPage: Tải dữ liệu doanh thu ban đầu
+
+RevenueAnalysisPage->StatisticsAPI: Lấy dữ liệu doanh thu 
+StatisticsAPI->Database: Truy vấn doanh thu theo khoảng thời gian
+Database-->>StatisticsAPI: Trả về dữ liệu
+StatisticsAPI-->>RevenueAnalysisPage: Trả về dữ liệu
+
+note over RevenueAnalysisPage: Hiển thị thẻ thống kê tổng quan
+RevenueAnalysisPage->Admin: Hiển thị 3 thẻ thống kê:
+note over RevenueAnalysisPage: 1. Thu nhập \n2. Chi phí \n3. Số dư
+
+
+note over Admin: Chọn loại thống kê (tháng/năm)
+Admin->RevenueAnalysisPage: Chọn "Month" hoặc "Year" từ dropdown
+RevenueAnalysisPage->RevenueAnalysisPage: Cập nhật thông tin
+
+alt Chọn thống kê theo tháng
+    Admin->DatePicker: Chọn tháng/năm từ DatePicker
+    DatePicker->RevenueAnalysisPage: Cập nhật thông tin
+    RevenueAnalysisPage->RevenueAnalysisPage: Tạo date string: "MM-yyyy"
+else Chọn thống kê theo năm
+    Admin->DatePicker: Chọn năm từ DatePicker
+    DatePicker->RevenueAnalysisPage: Cập nhật thông tin
+    RevenueAnalysisPage->RevenueAnalysisPage: Tạo date string: "yyyy"
+end
+
+note over RevenueAnalysisPage: Tải dữ liệu mới và cập nhật biểu đồ
+RevenueAnalysisPage->StatisticsAPI: Lấy dữ liệu
+StatisticsAPI->Database: Truy vấn doanh thu theo khoảng thời gian
+Database-->>StatisticsAPI: Trả về dữ liệu
+
+StatisticsAPI-->>RevenueAnalysisPage: Dữ liệu doanh thu mới
+
+
+
+RevenueAnalysisPage->Admin: Hiển thị biểu đồ doanh thu theo thời gian
+
+note over Admin: Tương tác với biểu đồ
+Admin->ChartJS: Di chuột qua các điểm trên biểu đồ
+ChartJS->Admin: Hiển thị tooltip với giá trị doanh thu
+Admin->RevenueAnalysisPage: Thay đổi khoảng thời gian xem
+RevenueAnalysisPage->StatisticsAPI: Tải dữ liệu mới theo thời
+StatisticsAPI->Database: Truy vấn doanh thu theo khoảng thời gian
+Database-->>StatisticsAPI: Trả về dữ liệu
+
+StatisticsAPI-->>RevenueAnalysisPage: Dữ liệu doanh thu mới 
+
+RevenueAnalysisPage->Admin: Hiển thị biểu đồ doanh thu theo thời giangian đã chọn

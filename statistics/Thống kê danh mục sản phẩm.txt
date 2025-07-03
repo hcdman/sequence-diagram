@@ -1,0 +1,35 @@
+title Thống kê danh mục sản phẩm
+
+actor "Quản trị viên" as Admin
+participant "Trang thống kê danh mục" as ProductCategoriesPage
+participant "API thống kê" as StatisticsAPI
+participant "Thư viện Chart.js" as ChartJS
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->ProductCategoriesPage: Truy cập trang thống kê danh mục (/statistics/product-categories)
+ProductCategoriesPage->ProductCategoriesPage: Hiển thị spinner loading
+ProductCategoriesPage->StatisticsAPI: Lấy dữ liệu thống kê 
+StatisticsAPI->Database: Truy vấn số lượng sản phẩm theo từng danh mục
+Database-->>StatisticsAPI: Trả về dữ liệu
+StatisticsAPI-->>ProductCategoriesPage: Trả về dữ liệu
+
+
+
+
+
+note over ProductCategoriesPage: Biểu đồ Doughnut
+
+ProductCategoriesPage->ChartJS: Render biểu đồ Doughnut với dữ liệu
+ChartJS->ProductCategoriesPage: Biểu đồ được tạo thành công
+
+note over ProductCategoriesPage: Hiển thị thông tin chi tiết
+ProductCategoriesPage->Admin: Hiển thị biểu đồ tròn bên trái
+ProductCategoriesPage->Admin: Hiển thị danh sách chi tiết bên phải:
+note over ProductCategoriesPage: - Tên danh mục\n- Số lượng sản phẩm\n- Phần trăm so với tổng\n- Màu tương ứng với biểu đồ
+
+note over Admin: Tương tác với biểu đồ
+Admin->ChartJS: Di chuột qua phần của biểu đồ
+ChartJS->Admin: Hiển thị tooltip: "{label}: {value} ({percent}%)"
+Admin->ProductCategoriesPage: Xem chi tiết từng danh mục
+ProductCategoriesPage->Admin: Hiển thị: "Tên danh mục - Số lượng (Phần trăm%)"

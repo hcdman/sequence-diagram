@@ -1,0 +1,20 @@
+title Thống kê đơn hàng chưa hoàn thành
+
+actor "Quản trị viên" as Admin
+participant "Trang thống kê đơn hàng" as OrderStatisticsPage
+participant "Bảng đơn hàng" as IncompleteOrderTable
+participant "API thống kê" as StatisticsAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->OrderStatisticsPage: Truy cập trang thống kê đơn hàng (/statistics/order-statistics)
+OrderStatisticsPage->OrderStatisticsPage: Hiển thị loading spinner
+OrderStatisticsPage->StatisticsAPI: Lấy đơn hàng chưa hoàn thành
+StatisticsAPI->Database: Truy vấn đơn hàng có status != "COMPLETED"
+Database-->>StatisticsAPI: danh sách đơn hàng
+StatisticsAPI-->>OrderStatisticsPage: Dữ liệu đơn hàng
+
+
+note over OrderStatisticsPage: Hiển thị giao diện thống kê
+OrderStatisticsPage->Admin: Hiển thị header với icon Clock và tiêu đề "Đơn hàng chưa hoàn thành"
+OrderStatisticsPage->Admin: Hiển thị "Doanh thu dự kiến"

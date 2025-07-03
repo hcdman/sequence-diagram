@@ -1,0 +1,33 @@
+title Thống kê sản phẩm bán chạy nhất
+
+actor "Quản trị viên" as Admin
+participant "Trang sản phẩm bán chạy" as BestSellerPage
+participant "API thống kê" as StatisticsAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->BestSellerPage: Truy cập trang sản phẩm bán chạy (/statistics/best-sellers)
+BestSellerPage->BestSellerPage:Hiển thị loading
+BestSellerPage->StatisticsAPI: Lấy danh sách sản phẩm bán chạy
+StatisticsAPI->Database: Truy vấn sản phẩm theo số lượng bán và doanh thu
+Database-->>StatisticsAPI: Trả về dữ liệu
+StatisticsAPI-->>BestSellerPage: Trả về dữ liệu
+
+note over BestSellerPage: Hiển thị danh sách sản phẩm bán chạy
+BestSellerPage->Admin: Hiển thị grid sản phẩm với thông tin:
+note over BestSellerPage: - Ảnh sản phẩm \n- Tên sản phẩm \n- Giá \n- Số lượng đã bán\n- Doanh thu
+
+BestSellerPage->Admin: Hiển thị từng sản phẩm trong card
+
+note over Admin: Sắp xếp và lọc
+Admin->BestSellerPage: Sắp xếp theo doanh thu hoặc số lượng bán
+
+BestSellerPage->Admin: Hiển thị danh sách đã sắp xếp
+
+Admin->BestSellerPage: Lọc theo khoảng giá
+BestSellerPage->BestSellerPage:Hiển thị loading
+BestSellerPage->StatisticsAPI: Lấy danh sách sản phẩm bán chạy
+StatisticsAPI->Database: Truy vấn sản phẩm theo số lượng bán và doanh thu
+Database-->>StatisticsAPI: Trả về dữ liệu
+StatisticsAPI-->>BestSellerPage: Trả về dữ liệu
+BestSellerPage->Admin: Hiển thị sản phẩm đã lọc
