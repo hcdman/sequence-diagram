@@ -1,0 +1,27 @@
+title Đăng nhập Quản trị viên
+
+actor "Quản trị viên" as Admin
+participant "Trang đăng nhập" as LoginPage
+participant "Hệ thống xác thực" as AuthAPI
+database "Bộ nhớ ứng dụng" as AuthContext
+database "Bộ nhớ trình duyệt" as LocalStorage
+participant "Điều hướng trang" as Router
+participant "Trang chính" as Dashboard
+
+Admin->LoginPage: Nhập email và mật khẩu
+LoginPage->LoginPage: Lưu thông tin vừa nhập
+Admin->LoginPage: Nhấn nút "Đăng nhập"
+LoginPage->LoginPage: Hiển thị trạng thái "Đang xử lý..."
+LoginPage->AuthAPI: Gửi thông tin đăng nhập lên server
+AuthAPI-->>LoginPage: Trả về kết quả đăng nhập
+
+alt Đăng nhập thành công
+    LoginPage->AuthContext: Lưu thông tin người dùng vào ứng dụng
+    AuthContext->LocalStorage: Lưu mã xác thực vào trình duyệt
+    LoginPage->LoginPage: Tắt trạng thái "Đang xử lý..."
+    LoginPage->Router: Chuyển hướng đến trang chính
+    Router->Dashboard: Hiển thị giao diện quản trị
+else Đăng nhập thất bại
+    LoginPage->LoginPage: Tắt trạng thái "Đang xử lý..."
+    LoginPage->Admin: Hiển thị thông báo lỗi màu đỏ
+end

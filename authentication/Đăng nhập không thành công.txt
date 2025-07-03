@@ -1,0 +1,14 @@
+title Đăng nhập không thành công
+
+actor "Quản trị viên" as Admin
+participant "Trang đăng nhập" as LoginPage
+participant "Hệ thống xác thực" as AuthAPI
+participant "Thông báo" as Toast
+
+Admin->LoginPage: Nhập sai email hoặc mật khẩu
+LoginPage->LoginPage: Hiển thị "Đang xử lý..."
+LoginPage->AuthAPI: Gửi thông tin đăng nhập
+AuthAPI-->>LoginPage: Trả về thông báo lỗi
+LoginPage->LoginPage: Tắt trạng thái "Đang xử lý..."
+LoginPage->Toast: Hiển thị thông báo lỗi màu đỏ
+Toast-->>Admin: "Email hoặc mật khẩu không đúng"
