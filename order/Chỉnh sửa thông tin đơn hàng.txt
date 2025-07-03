@@ -1,0 +1,73 @@
+title Chỉnh sửa đơn hàng
+
+actor "Quản trị viên" as Admin
+participant "Trang đơn hàng" as OrderPage
+participant "Form chỉnh sửa thông tin" as EditOrderInfo
+participant "Form chỉnh sửa sản phẩm" as EditOrderProduct
+participant "Xem trước thay đổi" as Preview
+participant "API đơn hàng" as OrderAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->OrderPage: Nhấn nút "Chỉnh sửa" trên đơn hàng
+OrderPage->EditOrderInfo: Chuyển đến /orders/edit/{id}/information
+
+note over EditOrderInfo: Tải dữ liệu đơn hàng hiện tại
+EditOrderInfo->EditOrderInfo: Hiển thị màn hình đang tải
+EditOrderInfo->OrderAPI: Lấy thông tin đơn hàng 
+OrderAPI->Database: SELECT thông tin đơn hàng theo ID
+Database-->>OrderAPI: Dữ liệu đơn hàng chi tiết
+OrderAPI-->>EditOrderInfo: Dữ liệu đơn hàng
+
+EditOrderInfo->OrderAPI: Lấy chi tiết đơn hàng 
+OrderAPI->Database: SELECT sản phẩm trong đơn hàng
+Database-->>OrderAPI: Danh sách sản phẩm và số lượng
+OrderAPI-->>EditOrderInfo: Thông tin chi tiết đơn hàng
+
+EditOrderInfo->Admin: Hiển thị form với dữ liệu đã điền sẵn
+
+note over Admin: Chỉnh sửa thông tin khách hàng
+Admin->EditOrderInfo: Cập nhật tên, số điện thoại, địa chỉ
+
+Admin->EditOrderInfo: Thay đổi phương thức thanh toán
+
+Admin->EditOrderInfo: Cập nhật trạng thái đơn hàng
+
+Admin->EditOrderInfo: Nhấn "Tiếp theo"
+EditOrderInfo->EditOrderProduct: Chuyển đến edit/product
+
+note over Admin: Chỉnh sửa sản phẩm trong đơn hàng
+Admin->EditOrderProduct: Thêm sản phẩm mới vào đơn hàng
+
+Admin->EditOrderProduct: Chọn sản phẩm và biến thể
+
+
+Admin->EditOrderProduct: Cập nhật số lượng sản phẩm có sẵn
+
+Admin->EditOrderProduct: Xóa sản phẩm khỏi đơn hàng
+
+
+Admin->EditOrderProduct: Nhấn "Tiếp theo"
+EditOrderProduct->Preview: Chuyển đến edit/preview
+
+note over Admin: Xác nhận và lưu thay đổi
+Preview->Admin: Hiển thị tóm tắt thay đổi (thông tin cũ vs mới)
+Admin->Preview: Kiểm tra các thay đổi
+Admin->Preview: Nhấn "Cập nhật đơn hàng"
+Preview->Preview: Hiển thị loading...
+
+Preview->OrderAPI: Cập nhật thông tin đơn hàng 
+OrderAPI->Database: UPDATE thông tin khách hàng và trạng thái
+Database-->>OrderAPI: Xác nhận cập nhật thông tin
+
+Preview->OrderAPI: Cập nhật chi tiết đơn hàng 
+OrderAPI->Database: UPDATE số lượng sản phẩm có sẵn
+Database-->>OrderAPI: Xác nhận cập nhật chi tiết
+
+Preview->OrderAPI: Thêm sản phẩm mới (nếu có)
+OrderAPI->Database: INSERT sản phẩm mới vào đơn hàng
+Database-->>OrderAPI: Xác nhận thêm sản phẩm
+
+Preview->Toast: "Cập nhật đơn hàng thành công!"
+Toast->Admin: Hiển thị thông báo thành công
+Preview->OrderPage: Quay về danh sách đơn hàng

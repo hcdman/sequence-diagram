@@ -1,0 +1,48 @@
+title Xem danh sách đơn hàng
+
+actor "Quản trị viên" as Admin
+participant "Trang đơn hàng" as OrderPage
+participant "Bộ lọc đơn hàng" as FilterSystem
+participant "API đơn hàng" as OrderAPI
+database "Cơ sở dữ liệu" as Database
+
+Admin->OrderPage: Truy cập trang quản lý đơn hàng (/orders)
+OrderPage->OrderPage: Hiển thị màn hình đang tải dữ liệu
+OrderPage->OrderAPI: Lấy danh sách đơn hàng 
+OrderAPI->Database: Truy vấn đơn hàng với phân trang
+Database-->>OrderAPI: Danh sách đơn hàng và tổng số trang
+OrderAPI-->>OrderPage: Thông tin danh sách đơn hàng
+OrderPage->Admin: Hiển thị bảng danh sách đơn hàng
+
+note over Admin: Tìm kiếm đơn hàng
+Admin->FilterSystem: Nhập từ khóa tìm kiếm (tên khách hàng, địa chỉ)
+
+Admin->FilterSystem: Nhấn Enter hoặc nút tìm kiếm
+FilterSystem->OrderAPI: Tìm kiếm với từ khóa
+OrderAPI->Database: Truy vấn WHERE customer_name LIKE '%keyword%'
+Database-->>OrderAPI: Kết quả tìm kiếm
+OrderAPI-->>FilterSystem: Danh sách đơn hàng phù hợp
+FilterSystem->Admin: Hiển thị kết quả tìm kiếm
+
+note over Admin: Lọc theo trạng thái đơn hàng
+Admin->FilterSystem: Chọn trạng thái từ dropdown (Pending, Processing, Shipped, v.v.)
+FilterSystem->OrderAPI: Lấy thông tin đơn hàng với điều kiện status
+OrderAPI->Database: SELECT WHERE status = selectedStatus
+Database-->>OrderAPI: Đơn hàng theo trạng thái
+OrderAPI-->>FilterSystem: Danh sách đã lọc
+FilterSystem->Admin: Hiển thị đơn hàng theo trạng thái
+
+note over Admin: Lọc theo phương thức thanh toán
+Admin->FilterSystem: Chọn phương thức thanh toán (COD, VN_PAY, MOMO)
+FilterSystem->OrderAPI: Lấy thông tin đơn hàng với điều kiện phương thức thanh toán
+OrderAPI->Database: SELECT WHERE payment_method = selectedMethod
+Database-->>OrderAPI: Đơn hàng theo phương thức thanh toán
+OrderAPI-->>FilterSystem: Kết quả lọc
+FilterSystem->Admin: Hiển thị đơn hàng đã lọc
+
+note over Admin: Chuyển trang
+Admin->OrderPage: Nhấn nút "Trang tiếp theo"
+OrderPage->FilterSystem: Thay đổi trang hiện tại
+FilterSystem->OrderAPI: Lấy dữ liệu trang mới
+OrderAPI-->>FilterSystem: Dữ liệu trang mới
+FilterSystem->Admin: Hiển thị đơn hàng trang mới

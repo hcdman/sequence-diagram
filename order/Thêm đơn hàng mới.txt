@@ -1,0 +1,65 @@
+title Thêm đơn hàng mới
+
+actor "Quản trị viên" as Admin
+participant "Trang đơn hàng" as OrderPage
+participant "Bước 1: Thông tin khách hàng" as AddOrderInfo
+participant "Bước 2: Chọn sản phẩm" as AddOrderProduct
+participant "Bước 3: Xem trước đơn hàng" as Preview
+participant "API đơn hàng" as OrderAPI
+participant "API sản phẩm" as ProductAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->OrderPage: Nhấn nút "Thêm đơn hàng"
+OrderPage->AddOrderInfo: Chuyển đến /orders/add/information
+
+note over Admin: Bước 1 - Nhập thông tin khách hàng
+Admin->AddOrderInfo: Nhập họ và tên khách hàng
+Admin->AddOrderInfo: Nhập số điện thoại
+Admin->AddOrderInfo: Nhập địa chỉ giao hàng
+Admin->AddOrderInfo: Chọn phương thức thanh toán (COD/VN_PAY/MOMO)
+Admin->AddOrderInfo: Chọn trạng thái đơn hàng
+Admin->AddOrderInfo: Nhấn "Tiếp theo"
+AddOrderInfo->AddOrderProduct: Chuyển đến /orders/add/product
+
+note over Admin: Bước 2 - Chọn sản phẩm cho đơn hàng
+AddOrderProduct->ProductAPI: Lấy danh sách sản phẩm
+ProductAPI->Database: SELECT sản phẩm có sẵn
+Database-->>ProductAPI: Danh sách sản phẩm
+ProductAPI-->>AddOrderProduct: Trả về danh sách sản phẩm
+AddOrderProduct->Admin: Hiển thị danh sách sản phẩm có thể chọn
+
+Admin->AddOrderProduct: Chọn một sản phẩm
+AddOrderProduct->AddOrderProduct: mở popup chọn biến thể
+Admin->AddOrderProduct: Chọn màu sắc và kích thước
+Admin->AddOrderProduct: Nhập số lượng
+Admin->AddOrderProduct: Nhấn "Thêm vào đơn hàng"
+
+note over Admin: Điều chỉnh số lượng sản phẩm
+Admin->AddOrderProduct: Nhấn nút "+" để tăng số 
+Admin->AddOrderProduct: Nhấn nút "-" để giảm số lượng
+
+Admin->AddOrderProduct: Xóa sản phẩm khỏi đơn hàng
+
+
+Admin->AddOrderProduct: Nhấn "Tiếp theo"
+AddOrderProduct->Preview: Chuyển đến /orders/add/preview
+
+note over Admin: Bước 3 - Xem trước và xác nhận đơn hàng
+Preview->Admin: Hiển thị tóm tắt đơn hàng (khách hàng, sản phẩm, tổng tiền)
+Admin->Preview: Kiểm tra thông tin đơn hàng
+Admin->Preview: Nhấn "Tạo đơn hàng"
+Preview->Preview:Hiển thị "Đang xử lý..."
+
+Preview->OrderAPI: Tạo đơn hàng mới
+OrderAPI->Database: INSERT thông tin đơn hàng
+Database-->>OrderAPI: Trả về order ID
+
+Preview->OrderAPI: Tạo chi tiết đơn hàng 
+OrderAPI->Database: INSERT từng sản phẩm trong đơn hàng
+Database-->>OrderAPI: Xác nhận tạo chi tiết đơn hàng
+
+Preview->Toast: "Thêm đơn hàng thành công!"
+Toast->Admin: Hiển thị thông báo thành công
+Preview->OrderPage: Quay về danh sách đơn hàng (/orders)
+OrderPage->Admin: Hiển thị đơn hàng mới trong danh sách
