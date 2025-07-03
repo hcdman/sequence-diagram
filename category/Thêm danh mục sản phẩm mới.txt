@@ -1,0 +1,45 @@
+title Thêm danh mục sản phẩm mới
+
+actor "Quản trị viên" as Admin
+participant "Trang danh mục" as CategoriesPage
+participant "Form thêm danh mục" as AddCategoryForm
+participant "API danh mục" as CategoryAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->CategoriesPage: Nhấn nút "Thêm danh mục"
+CategoriesPage->AddCategoryForm: Chuyển đến trang /categories/add
+AddCategoryForm->Admin: Hiển thị form trống để nhập thông tin
+
+note over Admin: Nhập thông tin danh mục
+Admin->AddCategoryForm: Nhập tên danh mục
+
+Admin->AddCategoryForm: Nhập mô tả danh mục
+
+
+note over Admin: Lưu danh mục mới
+Admin->AddCategoryForm: Nhấn nút "Lưu"
+AddCategoryForm->AddCategoryForm: Kiểm tra validation (tên và mô tả không được trống)
+
+alt Thông tin hợp lệ
+    AddCategoryForm->AddCategoryForm:Hiển thị "Đang xử lý..."
+    AddCategoryForm->CategoryAPI: Gửi thông tin danh mục (addCategory)
+    CategoryAPI->Database: INSERT danh mục mới vào database
+    
+    alt Thêm thành công
+        Database-->>CategoryAPI: Xác nhận tạo danh mục thành công
+        CategoryAPI-->>AddCategoryForm: Thông tin danh mục đã tạo
+        AddCategoryForm->Toast: "Thêm danh mục thành công"
+        Toast->Admin: Hiển thị thông báo màu xanh
+        AddCategoryForm->CategoriesPage: Quay về danh sách (/categories)
+        CategoriesPage->Admin: Hiển thị danh mục mới trong danh sách
+    else Thêm thất bại
+        Database-->>CategoryAPI: Lỗi (tên danh mục đã tồn tại)
+        CategoryAPI-->>AddCategoryForm: Thông báo lỗi
+        AddCategoryForm->Toast: Hiển thị thông báo lỗi
+        Toast->Admin: Thông báo màu đỏ
+    end
+else Thông tin không hợp lệ
+    AddCategoryForm->Toast: "Vui lòng điền đầy đủ thông tin"
+    Toast->Admin: Hiển thị thông báo lỗi validation
+end

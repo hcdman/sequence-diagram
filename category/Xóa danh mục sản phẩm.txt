@@ -1,0 +1,36 @@
+title Xóa danh mục sản phẩm
+actor "Quản trị viên" as Admin
+participant "Trang danh mục" as CategoriesPage
+participant "Popup xác nhận" as ConfirmDialog
+participant "API danh mục" as CategoryAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->CategoriesPage: Nhấn nút "Xóa" trên danh mục
+CategoriesPage->ConfirmDialog: Hiển thị popup xác nhận
+ConfirmDialog->Admin: "Bạn có chắc chắn muốn xóa danh mục này?"
+
+Admin->ConfirmDialog: Nhấn "Xác nhận xóa"
+ConfirmDialog->CategoryAPI: Yêu cầu xóa
+CategoryAPI->Database: Kiểm tra danh mục có sản phẩm không
+
+alt Danh mục không có sản phẩm
+    Database->CategoryAPI: Cho phép xóa danh mục
+    CategoryAPI->Database: DELETE danh mục khỏi database
+    Database-->>CategoryAPI: Xác nhận xóa thành công
+    CategoryAPI-->>ConfirmDialog: Phản hồi thành công
+    ConfirmDialog->Toast: "Xóa danh mục thành công"
+    Toast->Admin: Hiển thị thông báo màu xanh
+    ConfirmDialog->CategoriesPage: Làm mới danh sách danh mục
+    CategoriesPage->Admin: Hiển thị danh sách đã cập nhật (không còn danh mục đã xóa)
+else Danh mục đang có sản phẩm
+    Database-->>CategoryAPI: Lỗi (danh mục đang được sử dụng)
+    CategoryAPI-->>ConfirmDialog: Thông báo không thể xóa
+    ConfirmDialog->Toast: "Không thể xóa danh mục đang có sản phẩm"
+    Toast->Admin: Hiển thị thông báo lỗi màu đỏ
+end
+
+note over Admin: Hủy xóa
+Admin->ConfirmDialog: Nhấn "Hủy"
+ConfirmDialog->CategoriesPage: Đóng popup, không thực hiện gì
+CategoriesPage->Admin: Quay về danh sách danh mục bình thường

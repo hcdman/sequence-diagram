@@ -1,0 +1,32 @@
+title Xem danh sách danh mục sản phẩm
+actor "Quản trị viên" as Admin
+participant "Trang danh mục" as CategoriesPage
+participant "Thanh tìm kiếm" as SearchBar
+participant "API danh mục" as CategoryAPI
+database "Cơ sở dữ liệu" as Database
+
+Admin->CategoriesPage: Truy cập trang quản lý danh mục (/categories)
+CategoriesPage->CategoriesPage: Hiển thị màn hình đang tải dữ liệu
+CategoriesPage->CategoryAPI: Lấy danh sách tất cả danh mục
+CategoryAPI->Database: Truy vấn tất cả danh mục sản phẩm
+Database-->>CategoryAPI: Danh sách danh mục và thông tin chi tiết
+CategoryAPI-->>CategoriesPage: Dữ liệu danh mục
+CategoriesPage->Admin: Hiển thị bảng danh sách danh mục
+
+note over Admin: Tìm kiếm danh mục
+Admin->SearchBar: Nhập từ khóa tìm kiếm tên danh mục
+SearchBar->SearchBar: Lưu từ khóa tìm kiếm
+Admin->SearchBar: Nhấn Enter hoặc nút tìm kiếm
+SearchBar->CategoryAPI: Tìm kiếm danh mục theo tên
+CategoryAPI->Database: Truy vấn WHERE name LIKE '%keyword%'
+Database-->>CategoryAPI: Kết quả tìm kiếm
+CategoryAPI-->>SearchBar: Danh sách danh mục phù hợp
+SearchBar->Admin: Hiển thị kết quả tìm kiếm
+
+note over Admin: Phân trang danh mục
+Admin->CategoriesPage: Nhấn nút "Trang tiếp theo"
+CategoriesPage->CategoryAPI: Lấy dữ liệu trang mới với offset
+CategoryAPI->Database: SELECT với LIMIT và OFFSET
+Database-->>CategoryAPI: Danh mục của trang mới
+CategoryAPI-->>CategoriesPage: Dữ liệu trang được yêu cầu
+CategoriesPage->Admin: Hiển thị danh mục trang mới

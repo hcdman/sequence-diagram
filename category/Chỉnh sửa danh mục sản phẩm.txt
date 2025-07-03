@@ -1,0 +1,52 @@
+title Chỉnh sửa danh mục sản phẩm
+
+actor "Quản trị viên" as Admin
+participant "Trang danh mục" as CategoriesPage
+participant "Form chỉnh sửa" as EditCategoryForm
+participant "API danh mục" as CategoryAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->CategoriesPage: Nhấn nút "Chỉnh sửa" trên danh mục
+CategoriesPage->EditCategoryForm: Chuyển đến /categories/edit/{id}
+
+note over EditCategoryForm: Tải thông tin danh mục hiện tại
+EditCategoryForm->EditCategoryForm: Hiển thị màn hình đang tải
+EditCategoryForm->CategoryAPI: Lấy thông tin danh mục theo ID
+CategoryAPI->Database: SELECT thông tin danh mục WHERE id = {id}
+Database-->>CategoryAPI: Thông tin chi tiết danh mục
+CategoryAPI-->>EditCategoryForm: Dữ liệu danh mục hiện tại
+EditCategoryForm->Admin: Hiển thị form với thông tin đã điền sẵn
+
+note over Admin: Chỉnh sửa thông tin
+Admin->EditCategoryForm: Cập nhật tên danh mục
+
+Admin->EditCategoryForm: Cập nhật mô tả danh mục
+
+
+note over Admin: Lưu thay đổi
+Admin->EditCategoryForm: Nhấn nút "Lưu thay đổi"
+EditCategoryForm->EditCategoryForm: Kiểm tra validation (không được để trống)
+
+alt Thông tin hợp lệ
+   
+    EditCategoryForm->CategoryAPI: Cập nhật danh mục (updateCategory)
+    CategoryAPI->Database: UPDATE thông tin danh mục
+    
+    alt Cập nhật thành công
+        Database-->>CategoryAPI: Xác nhận cập nhật thành công
+        CategoryAPI-->>EditCategoryForm: Thông tin danh mục đã cập nhật
+        EditCategoryForm->Toast: "Cập nhật danh mục thành công"
+        Toast->Admin: Hiển thị thông báo thành công
+        EditCategoryForm->CategoriesPage: Quay về danh sách danh mục
+    else Cập nhật thất bại
+        Database-->>CategoryAPI: Lỗi cập nhật
+        CategoryAPI-->>EditCategoryForm: Thông báo lỗi
+        EditCategoryForm->Toast: Hiển thị thông báo lỗi
+        Toast->Admin: Thông báo màu đỏ
+        EditCategoryForm->EditCategoryForm: setSaving(false)
+    end
+else Thông tin không hợp lệ
+    EditCategoryForm->Toast: "Vui lòng điền đầy đủ thông tin"
+    Toast->Admin: Hiển thị thông báo validation
+end
