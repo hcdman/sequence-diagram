@@ -1,0 +1,38 @@
+title Thêm khách hàng mới
+
+actor "Quản trị viên" as Admin
+participant "Trang khách hàng" as CustomersPage
+participant "Form thêm khách hàng" as AddCustomerForm
+participant "API khách hàng" as UserAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->CustomersPage: Nhấn nút "Thêm khách hàng"
+CustomersPage->AddCustomerForm: Chuyển đến trang thêm khách hàng (/customers/add)
+AddCustomerForm->Admin: Hiển thị form nhập thông tin
+
+note over Admin: Nhập thông tin khách hàng
+Admin->AddCustomerForm: Nhập họ tên, email, số điện thoại
+AddCustomerForm->AddCustomerForm: Lưu thông tin vào form
+Admin->AddCustomerForm: Nhập địa chỉ, cân nặng, chiều cao, mật khẩu,...
+AddCustomerForm->AddCustomerForm: Kiểm tra tính hợp lệ của dữ liệu
+
+note over Admin: Hoàn tất thêm khách hàng
+Admin->AddCustomerForm: Nhấn nút "Lưu"
+AddCustomerForm->AddCustomerForm: Hiển thị trạng thái "Đang xử lý..."
+AddCustomerForm->UserAPI: Gửi thông tin khách hàng mới lên server
+UserAPI->Database: Lưu thông tin khách hàng vào cơ sở dữ liệu
+
+alt Thêm thành công
+    Database-->>UserAPI: Xác nhận tạo khách hàng thành công
+    UserAPI-->>AddCustomerForm: Trả về thông tin khách hàng đã tạo
+    AddCustomerForm->Toast: Hiển thị thông báo "Thêm khách hàng thành công"
+    Toast->Admin: Thông báo màu xanh
+    AddCustomerForm->CustomersPage: Quay về trang danh sách khách hàng
+else Thêm thất bại
+    Database-->>UserAPI: Trả về lỗi (email đã tồn tại, v.v.)
+    UserAPI-->>AddCustomerForm: Thông báo lỗi
+    AddCustomerForm->Toast: Hiển thị thông báo lỗi
+    Toast->Admin: Thông báo màu đỏ
+    AddCustomerForm->AddCustomerForm: Tắt trạng thái "Đang xử lý..."
+end

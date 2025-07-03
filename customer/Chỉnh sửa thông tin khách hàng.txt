@@ -1,0 +1,46 @@
+title Chỉnh sửa thông tin khách hàng
+
+actor "Quản trị viên" as Admin
+participant "Trang khách hàng" as CustomersPage
+participant "Form chỉnh sửa" as EditCustomerForm
+participant "API ảnh" as ImageAPI
+participant "API khách hàng" as UserAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->CustomersPage: Nhấn nút "Chỉnh sửa" trên khách hàng
+CustomersPage->EditCustomerForm: Chuyển đến trang chỉnh sửa (/customers/edit/{id})
+
+note over EditCustomerForm: Tải thông tin hiện tại
+EditCustomerForm->EditCustomerForm: Hiển thị màn hình đang tải
+EditCustomerForm->UserAPI: Lấy thông tin khách hàng theo ID
+UserAPI->Database: Truy vấn thông tin khách hàng
+Database-->>UserAPI: Thông tin chi tiết khách hàng
+UserAPI-->>EditCustomerForm: Dữ liệu khách hàng hiện tại
+EditCustomerForm->Admin: Hiển thị form với thông tin đã điền sẵn
+
+note over Admin: Chỉnh sửa thông tin
+Admin->EditCustomerForm: Cập nhật thông tin cá nhân (tên, email, v.v.)
+EditCustomerForm->EditCustomerForm: Lưu thay đổi vào form
+Admin->EditCustomerForm: Thay đổi ảnh đại diện (nếu muốn)
+EditCustomerForm->ImageAPI: Upload ảnh mới lên cloud
+ImageAPI-->>EditCustomerForm: Trả về URL ảnh mới
+
+note over Admin: Lưu thay đổi
+Admin->EditCustomerForm: Nhấn nút "Lưu thay đổi"
+EditCustomerForm->EditCustomerForm: Hiển thị "Đang xử lý..."
+EditCustomerForm->UserAPI: Gửi thông tin đã cập nhật lên server
+UserAPI->Database: Cập nhật thông tin khách hàng trong cơ sở dữ liệu
+
+alt Cập nhật thành công
+    Database-->>UserAPI: Xác nhận cập nhật thành công
+    UserAPI-->>EditCustomerForm: Thông tin khách hàng đã được cập nhật
+    EditCustomerForm->Toast: "Cập nhật thông tin thành công"
+    Toast->Admin: Thông báo màu xanh
+    EditCustomerForm->CustomersPage: Quay về danh sách khách hàng
+else Cập nhật thất bại
+    Database-->>UserAPI: Trả về lỗi cập nhật
+    UserAPI-->>EditCustomerForm: Thông báo lỗi
+    EditCustomerForm->Toast: Hiển thị thông báo lỗi
+    Toast->Admin: Thông báo màu đỏ
+end
