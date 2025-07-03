@@ -1,0 +1,67 @@
+title Chỉnh sửa bài viết
+
+actor "Quản trị viên" as Admin
+participant "Card bài viết" as BlogCard
+participant "Form chỉnh sửa" as EditBlogForm
+participant "Trình soạn thảo" as ReactQuill
+participant "Modal upload ảnh" as UploadModal
+participant "API bài viết" as BlogAPI
+participant "API ảnh" as ImageAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->BlogCard: Nhấn vào ảnh bài viết để chỉnh sửa
+BlogCard->EditBlogForm: Chuyển đến /blogs/edit/{id}
+
+note over EditBlogForm: Tải dữ liệu bài viết hiện tại
+EditBlogForm->EditBlogForm: Hiển thị loading
+EditBlogForm->BlogAPI: Lấy thông tin bài viết
+BlogAPI->Database: SELECT blog WHERE id = {id}
+Database-->>BlogAPI: Thông tin chi tiết bài viết
+BlogAPI-->>EditBlogForm: Thông tin chi tiết bài viết
+
+
+EditBlogForm->Admin: Hiển thị form với dữ liệu 
+
+note over Admin: Chỉnh sửa nội dung
+Admin->EditBlogForm: Cập nhật tiêu đề bài viết
+EditBlogForm->EditBlogForm: Cập nhật tiêu đề
+Admin->ReactQuill: Chỉnh sửa nội dung với rich text editor
+ReactQuill->ReactQuill: Sử dụng các công cụ định dạng
+Admin->ReactQuill: Thêm/xóa/sửa văn bản, hình ảnh, liên kết
+ReactQuill->EditBlogForm: Cập nhật nội dung
+
+note over Admin: Lưu thay đổi
+Admin->EditBlogForm: Nhấn "Tiếp theo"
+EditBlogForm->EditBlogForm: Kiểm tra validation title và content
+
+alt Thông tin hợp lệ
+    UploadModal->Admin: Hiển thị modal với ảnh hiện tại
+else Thiếu thông tin
+    EditBlogForm->Toast: "Vui lòng điền đầy đủ thông tin"
+    Toast->Admin: Hiển thị thông báo validation
+end
+
+note over Admin: Thay đổi ảnh (tùy chọn)
+Admin->UploadModal: Chọn ảnh mới hoặc giữ ảnh cũ
+UploadModal->UploadModal: Hiển thị preview ảnh đã chọn/ảnh cũ
+Admin->UploadModal: Nhấn "Cập nhật bài viết"
+
+alt Có ảnh mới
+    UploadModal->ImageAPI:Tải ảnh mới
+    ImageAPI-->>UploadModal: URL ảnh mới
+    UploadModal->UploadModal: Cập nhật URL ảnh
+else Giữ ảnh cũ
+    UploadModal->UploadModal: Sử dụng URL ảnh hiện tại
+end
+
+note over UploadModal: Cập nhật bài viết
+UploadModal->BlogAPI: Cập nhật bài viết (updateBlog)
+BlogAPI->Database: UPDATE blog SET title, content, image, updatedAt WHERE id
+Database-->>BlogAPI: Xác nhận cập nhật thành công
+BlogAPI-->>UploadModal: Thông tin bài viết đã cập nhật
+
+UploadModal->Toast: "Cập nhật bài viết thành công!"
+Toast->Admin: Hiển thị thông báo thành công
+UploadModal->BlogsPage: navigate('/blogs') - Quay về danh sách
+BlogsPage->Admin: Hiển thị bài viết đã cập nhật

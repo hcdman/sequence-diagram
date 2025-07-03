@@ -1,0 +1,39 @@
+title Xóa bài viết
+
+actor "Quản trị viên" as Admin
+participant "Card bài viết" as BlogCard
+participant "Modal xác nhận" as DeleteModal
+participant "API bài viết" as BlogAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->BlogCard: Nhấn nút "X" (xóa) trên góc card
+
+BlogCard->DeleteModal: Hiển thị modal xác nhận
+DeleteModal->Admin: "Bạn có chắc chắn muốn xóa bài viết này?"
+
+note over Admin: Xác nhận xóa
+Admin->DeleteModal: Nhấn "Xác nhận xóa"
+DeleteModal->DeleteModal: Hiển thị loading 
+DeleteModal->BlogAPI: Xóa bài viết
+BlogAPI->Database: DELETE FROM blogs WHERE id = {blogId}
+
+alt Xóa thành công
+    Database-->>BlogAPI: Xác nhận xóa thành công
+    BlogAPI-->>DeleteModal: Phản hồi thành công
+    DeleteModal->Toast: "Xóa bài viết thành công!"
+    Toast->Admin: Hiển thị thông báo màu xanh
+    DeleteModal->BlogCard: Đóng modal
+    BlogCard->BlogCard: Làm mới danh sách
+    BlogCard->Admin: Hiển thị danh sách đã cập nhật (không còn bài viết đã xóa)
+else Xóa thất bại
+    Database-->>BlogAPI: Lỗi xóa
+    BlogAPI-->>DeleteModal: Thông báo lỗi
+    DeleteModal->Toast: "Không thể xóa bài viết này"
+    Toast->Admin: Hiển thị thông báo lỗi màu đỏ
+end
+
+note over Admin: Hủy xóa
+Admin->DeleteModal: Nhấn nút "Hủy" hoặc X
+DeleteModal->BlogCard: Yêu cầu đóng modal
+BlogCard->Admin: Đóng modal, quay về danh sách bình thường

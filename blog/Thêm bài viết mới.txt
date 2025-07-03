@@ -1,0 +1,57 @@
+title Thêm bài viết mới
+
+actor "Quản trị viên" as Admin
+participant "Trang bài viết" as BlogsPage
+participant "Form viết bài" as AddBlogForm
+participant "Trình soạn thảo" as ReactQuill
+participant "Modal upload ảnh" as UploadModal
+participant "API ảnh" as ImageAPI
+participant "API bài viết" as BlogAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->BlogsPage: Nhấn nút "Thêm bài viết" (+)
+BlogsPage->AddBlogForm: Chuyển đến /blogs/add
+AddBlogForm->Admin: Hiển thị form viết bài
+
+note over Admin: Soạn thảo nội dung bài viết
+Admin->AddBlogForm: Nhập tiêu đề bài viết
+AddBlogForm->AddBlogForm: Cập nhật tiêu đề
+Admin->ReactQuill: Viết nội dung bài với rich text editor
+ReactQuill->ReactQuill: Sử dụng toolbar (header, bold, italic, color, link, v.v.)
+Admin->ReactQuill: Định dạng văn bản (màu sắc, căn lề, danh sách)
+ReactQuill->AddBlogForm: Cập nhật văn bản
+
+note over Admin: Kiểm tra và tiếp tục
+Admin->AddBlogForm: Nhấn "Tiếp theo"
+AddBlogForm->AddBlogForm: Kiểm tra title và content không trống
+
+alt Thông tin đầy đủ
+    AddBlogForm->UploadModal: Mở modal upload ảnh
+    UploadModal->Admin: Hiển thị giao diện chọn ảnh
+else Thiếu thông tin
+    AddBlogForm->Toast: "Vui lòng điền đầy đủ thông tin"
+    Toast->Admin: Hiển thị thông báo lỗi validation
+end
+
+note over Admin: Upload ảnh bài viết
+Admin->UploadModal: Chọn file ảnh từ máy tính
+UploadModal->UploadModal: Hiển thị preview ảnh đã chọn
+Admin->UploadModal: Nhấn "Lưu bài viết"
+
+UploadModal->ImageAPI: Upload ảnh
+ImageAPI->Database: Lưu ảnh 
+Database-->>ImageAPI: Trả về URL ảnh đã upload
+ImageAPI-->>UploadModal: URL ảnh
+
+note over UploadModal: Tạo bài viết với ảnh
+
+UploadModal->BlogAPI: Tạo bài viết mới 
+BlogAPI->Database: INSERT bài viết với title, content, image, userId
+Database-->>BlogAPI: Xác nhận tạo bài viết thành công
+BlogAPI-->>UploadModal: Thông tin bài viết đã tạo
+
+UploadModal->Toast: "Thêm bài viết thành công!"
+Toast->Admin: Hiển thị thông báo thành công màu xanh
+UploadModal->BlogsPage: navigate('/blogs') - Quay về danh sách
+BlogsPage->Admin: Hiển thị bài viết mới trong danh sách

@@ -1,0 +1,33 @@
+title Xem danh sách bài viết - Hệ thống Quản lý
+
+actor "Quản trị viên" as Admin
+participant "Trang bài viết" as BlogsPage
+participant "Thanh tìm kiếm" as SearchBar
+participant "API bài viết" as BlogAPI
+database "Cơ sở dữ liệu" as Database
+
+Admin->BlogsPage: Truy cập trang quản lý bài viết (/blogs)
+BlogsPage->BlogsPage: Hiển thị màn hình đang tải dữ liệu
+BlogsPage->BlogAPI: Lấy danh sách bài viết 
+BlogAPI->Database: Truy vấn bài viết với phân trang (page=0, size=6)
+Database-->>BlogAPI: Danh sách bài viết và tổng số trang
+BlogAPI-->>BlogsPage: Thông tin danh sách bài viết
+BlogsPage->Admin: Hiển thị lưới bài viết
+
+note over Admin: Tìm kiếm bài viết
+Admin->SearchBar: Nhập từ khóa tìm kiếm tiêu đề bài viết
+SearchBar->SearchBar: Lưu thông tin tìm kiếm
+Admin->SearchBar: Nhấn Enter
+
+SearchBar->BlogAPI: Lấy thông tin bài viết
+BlogAPI->Database: Truy vấn WHERE title LIKE '%keyword%'
+Database-->>BlogAPI: Kết quả tìm kiếm
+BlogAPI-->>SearchBar: Danh sách bài viết phù hợp
+SearchBar->Admin: Hiển thị kết quả tìm kiếm
+
+note over Admin: Phân trang bài viết
+Admin->BlogsPage: Nhấn nút chuyển trang
+BlogsPage->BlogsPage: Cập nhật trang hiện tại
+BlogsPage->BlogAPI: Lấy dữ liệu trang mới
+BlogAPI-->>BlogsPage: Bài viết của trang mới
+BlogsPage->Admin: Hiển thị bài viết trang mới với animation
