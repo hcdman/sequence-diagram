@@ -1,0 +1,33 @@
+title Chọn và Xem tin nhắn
+
+actor "Quản trị viên" as Admin
+participant "Danh sách cuộc trò chuyện" as ConversationList
+participant "Cửa sổ chat" as ChatWindow
+participant "API tin nhắn" as MessageAPI
+database "Cơ sở dữ liệu" as Database
+
+Admin->ConversationList: Click vào một cuộc trò chuyện
+
+note over ConversationList: Tải tin nhắn của cuộc trò chuyện
+ConversationList->MessageAPI: Lấy tin nhắn
+MessageAPI->Database: SELECT messages WHERE conversationId = {id}
+Database-->>MessageAPI: Trả về dữ liệu
+MessageAPI-->>ConversationList: Trả về dữ liệu
+
+note over ChatWindow: Hiển thị giao diện chat
+ChatWindow->Admin: Hiển thị với thông tin khách hàng:
+note over ChatWindow: - Ảnh đại diện khách hàng\n- Tên khách hàng
+
+ChatWindow->Admin: Hiển thị danh sách tin nhắn:
+note over ChatWindow: - Tin nhắn của admin (màu xanh, bên phải)\n- Tin nhắn của khách hàng (màu xám, bên trái)\n- Hỗ trợ hiển thị ảnh\n- Tự động cuộn xuống tin nhắn mới nhất
+
+note over Admin: Xem chi tiết tin nhắn
+Admin->ChatWindow: Xem từng tin nhắn
+ChatWindow->Admin: Hiển thị:
+
+alt Tin nhắn văn bản 
+    ChatWindow->Admin: Hiển thị nội dung text 
+else Tin nhắn hình ảnh
+    ChatWindow->Admin: Hiển thị ảnh từ URL 
+    ChatWindow->Admin: Ảnh có thể click để xem lớn
+end

@@ -1,0 +1,33 @@
+title Xem danh sách cuộc trò chuyện
+
+actor "Quản trị viên" as Admin
+participant "Trang tin nhắn" as MessagePage
+participant "Thanh tìm kiếm" as SearchBar
+participant "API tin nhắn" as MessageAPI
+database "Cơ sở dữ liệu" as Database
+
+Admin->MessagePage: Truy cập trang quản lý tin nhắn (/messages)
+MessagePage->MessagePage: Hiển thị loading
+MessagePage->MessageAPI: Lấy danh sách cuộc trò chuyện 
+MessageAPI->Database: Truy vấn cuộc trò chuyện với phân trang
+Database-->>MessageAPI: Trả về dữ liệu
+MessageAPI-->>MessagePage: Trả về dữ liệu
+
+note over MessagePage: Hiển thị danh sách cuộc trò chuyện
+MessagePage->Admin: Hiển thị sidebar với danh sách khách hàng
+MessagePage->Admin: Mỗi item hiển thị:
+note over MessagePage: - Ảnh đại diện khách hàng\n- Tên khách hàng \n- Tin nhắn cuối cùng
+
+note over Admin: Tìm kiếm cuộc trò chuyện
+Admin->SearchBar: Nhập từ khóa tìm kiếm tên khách hàng
+Admin->SearchBar: Nhấn Enter
+SearchBar->MessageAPI: Tìm kiếm cuộc trò chuyện theo tên khách hàng
+MessageAPI->Database: Truy vấn WHERE customer_name LIKE '%keyword%'
+Database-->>MessageAPI: Kết quả tìm kiếm
+MessageAPI-->>SearchBar: Danh sách cuộc trò chuyện phù hợp
+SearchBar->Admin: Hiển thị kết quả tìm kiếm
+
+Admin->MessagePage: Cuộn xuống cuối danh sách
+MessagePage->MessageAPI: Lấy trang tiếp theo
+MessageAPI-->>MessagePage: Thêm dữ liệu mới vào danh sách
+MessagePage->Admin: Hiển thị thêm cuộc trò chuyện mới

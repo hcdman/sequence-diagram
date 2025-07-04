@@ -1,0 +1,43 @@
+title Gửi tin nhắn
+
+actor "Quản trị viên" as Admin
+participant "Ô nhập tin nhắn" as MessageInput
+participant "Tải ảnh" as ImageButton
+participant "Hệ thống tin nhắn" as MessageSystem
+participant "Dịch vụ lưu ảnh" as ImageStorage
+database "Cơ sở dữ liệu" as Database
+
+note over Admin: Gửi tin nhắn văn bản
+Admin->MessageInput: Gõ nội dung tin nhắn văn bản
+MessageInput->MessageInput: Lưu nội dung vào bộ nhớ tạm
+Admin->MessageInput: Nhấn Enter hoặc nút "Gửi"
+
+MessageInput->MessageSystem: Gửi tin nhắn văn bản
+MessageSystem->Database: Lưu tin nhắn văn bản vào cơ sở dữ liệu
+Database-->>MessageSystem: Xác nhận đã lưu tin nhắn văn bản
+
+MessageSystem->MessageInput: Tin nhắn văn bản đã được gửi
+MessageInput->MessageInput: Xóa nội dung ô nhập
+MessageInput->Admin: Hiển thị tin nhắn văn bản mới trong chat
+
+note over Admin: Gửi tin nhắn hình ảnh
+Admin->ImageButton: Nhấn nút biểu tượng camera/ảnh
+ImageButton->Admin: Mở cửa sổ chọn file ảnh
+Admin->ImageButton: Chọn một hoặc nhiều ảnh từ máy tính
+ImageButton->ImageButton: Hiển thị "Đang xử lý..."
+
+ImageButton->ImageStorage: Upload ảnh lên cloud storage
+ImageStorage->ImageStorage: Lưu ảnh và tạo đường link
+ImageStorage-->>ImageButton: Trả về link ảnh đã upload
+
+ImageButton->MessageSystem: Gửi tin nhắn ảnh (loại: IMAGE, kèm link ảnh)
+MessageSystem->Database: Lưu tin nhắn ảnh với đường link
+Database-->>MessageSystem: Xác nhận đã lưu tin nhắn ảnh
+
+MessageSystem->ImageButton: Tin nhắn ảnh đã được gửi
+ImageButton->ImageButton: Tắt trạng thái "Đang xử lý..."
+ImageButton->Admin: Hiển thị ảnh mới trong cửa sổ chat
+
+note over MessageSystem: Cập nhật giao diện chung
+MessageSystem->Admin: Cập nhật tin nhắn cuối cùng trong danh sách cuộc trò chuyện
+MessageSystem->Admin: Khách hàng nhận được tin nhắn ngay lập tức (real-time)
