@@ -1,0 +1,63 @@
+title Chỉnh sửa cài đặt hệ thống
+
+actor "Quản trị viên" as Admin
+participant "Trang cài đặt" as SettingPage
+participant "Dropdown dịch vụ" as ServiceSelect
+participant "Form cài đặt" as SettingForm
+participant "API cài đặt" as SettingAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+note over Admin: Truy cập trang cài đặt
+Admin->SettingPage: Vào trang cài đặt (/settings)
+SettingPage->SettingPage: Hiển thị loading danh sách dịch vụ
+SettingPage->SettingAPI: Lấy danh sách tên dịch vụ
+SettingAPI->Database: SELECT DISTINCT service_name FROM system_settings
+Database-->>SettingAPI: Trả về danh sách tên dịch vụ
+SettingAPI-->>SettingPage: Cập nhật danh sách dịch vụ
+SettingPage->ServiceSelect: Hiển thị dropdown với dịch vụ đầu tiên được chọn
+
+note over Admin: Chọn dịch vụ cần cài đặt
+Admin->ServiceSelect: Chọn một dịch vụ từ dropdown
+ServiceSelect->SettingPage: Cập nhật dịch vụ đã chọn
+SettingPage->SettingPage: Hiển thị loading cài đặt
+SettingPage->SettingAPI: Lấy cài đặt theo dịch vụ 
+SettingAPI->Database: SELECT * FROM system_settings WHERE service_name = '{serviceName}'
+Database-->>SettingAPI: Trả về danh sách cài đặt của dịch vụ
+SettingAPI-->>SettingPage: Cập nhật cài đặt hiện tại
+SettingPage->SettingForm: Hiển thị form với các trường cài đặt
+
+note over Admin: Chỉnh sửa giá trị cài đặt
+Admin->SettingForm: Thay đổi giá trị
+
+note over Admin: Lưu cài đặt
+Admin->SettingForm: Nhấn nút "Lưu"
+SettingForm->SettingForm: Hiển thị trạng thái "Đang lưu..."
+SettingForm->SettingAPI: Gửi cập nhật cài đặt
+SettingAPI->Database: Cập nhật từng cài đặt trong cơ sở dữ liệu
+
+loop Với mỗi cài đặt cần cập nhật
+    SettingAPI->Database: UPDATE system_settings SET value = '{newValue}' WHERE key = '{settingKey}'
+    Database-->>SettingAPI: Xác nhận cập nhật thành công
+end
+
+alt Cập nhật thành công
+    Database-->>SettingAPI: Tất cả cài đặt được cập nhật
+    SettingAPI-->>SettingForm: Trả về kết quả thành công
+    SettingForm->Toast: Hiển thị thông báo "Lưu thành công"
+    Toast->Admin: Thông báo màu xanh xuất hiện 1 giây
+else Cập nhật thất bại
+    Database-->>SettingAPI: Lỗi cập nhật cài đặt
+    SettingAPI-->>SettingForm: Trả về thông báo lỗi
+    SettingForm->Toast: Hiển thị thông báo lỗi cụ thể
+    Toast->Admin: Thông báo màu đỏ với nội dung lỗi
+end
+
+note over Admin: Chuyển đổi giữa các dịch vụ
+Admin->ServiceSelect: Chọn dịch vụ khác
+ServiceSelect->SettingPage: Dịch vụ mới được chọn
+SettingPage->SettingAPI: Tải cài đặt của dịch vụ mới
+SettingAPI->Database: SELECT cài đặt theo service_name mới
+Database-->>SettingAPI: Cài đặt của dịch vụ mới
+SettingAPI-->>SettingPage: Cập nhật giao diện
+SettingPage->Admin: Hiển thị form với cài đặt mới

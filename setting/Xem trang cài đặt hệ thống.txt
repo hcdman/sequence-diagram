@@ -1,0 +1,26 @@
+title Xem trang cài đặt hệ thống
+
+actor "Quản trị viên" as Admin
+participant "Trang cài đặt" as SettingPage
+participant "API cài đặt" as SettingAPI
+participant "Dropdown dịch vụ" as ServiceDropdown
+database "Cơ sở dữ liệu" as Database
+
+Admin->SettingPage: Truy cập trang cài đặt (/settings)
+SettingPage->SettingPage: Hiển thị loading
+SettingPage->SettingAPI: Lấy danh sách tên dịch vụ
+SettingAPI->Database: Truy vấn SELECT DISTINCT service_name FROM system_settings
+Database-->>SettingAPI: Danh sách tên dịch vụ
+SettingAPI-->>SettingPage: Trả về danh sách dịch vụ
+
+note over SettingPage: Chọn dịch vụ đầu tiên làm mặc định
+SettingPage->ServiceDropdown: Hiển thị dropdown với danh sách dịch vụ
+
+note over SettingPage: Tải cài đặt của dịch vụ đầu tiên
+SettingPage->SettingAPI: Lấy cài đặt theo dịch vụ
+SettingAPI->Database: SELECT * FROM system_settings WHERE service_name = ?
+Database-->>SettingAPI: Danh sách cài đặt chi tiết
+SettingAPI-->>SettingPage: Trả về dữ liệu
+
+SettingPage->Admin: Hiển thị form cài đặt với
+note over SettingPage: - Dropdown chọn dịch vụ\n- Danh sách các trường key-value\n- Nút "Lưu" ở cuối form
