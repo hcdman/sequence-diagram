@@ -1,0 +1,41 @@
+title Xóa kích thước
+
+actor "Quản trị viên" as Admin
+participant "Bảng kích thước" as SizeTable
+participant "Modal xác nhận" as DeleteModal
+participant "API Size" as SizeAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+
+Admin->SizeTable: Nhấn nút "Xóa"
+SizeTable->DeleteModal: Hiển thị xác nhận delete
+DeleteModal->Admin: Modal xác nhận
+
+
+note over Admin: Xác nhận xóa
+Admin->DeleteModal: Nhấn "Xác nhận xóa"
+DeleteModal->SizeAPI: Gửi yêu cầu xóa
+SizeAPI->Database: Truy vấn xóa 
+
+alt Kích thước không được sử dụng
+    Database-->>SizeAPI: Xác nhận xóa thành công 
+    SizeAPI-->>DeleteModal: Phản hồi xóa thành công
+    DeleteModal->Toast: Thông báo xóa thành công
+    Toast->Admin: "Xóa thành công!" (màu xanh, 1 giây)
+    SizeTable->SizeAPI: Tải lại danh sách
+    SizeAPI->Database: SELECT * FROM sizes với phân trang
+    Database-->>SizeAPI: Danh sách kích thước mới (không còn kích thước đã xóa)
+    SizeAPI-->>SizeTable: Cập nhật danh sách
+    SizeTable->Admin: Hiển thị danh sách đã cập nhật
+else Kích thước đang được sử dụng
+    Database-->>SizeAPI: Lỗi không thể xóa
+    SizeAPI-->>DeleteModal: "Không thể xóa kích thước đang được sử dụng"
+    DeleteModal->Toast: Thông báo lỗi
+    Toast->Admin: "Không thể xóa kích thước đang được sử dụng trong sản phẩm" (màu đỏ)
+end
+
+note over Admin: Hủy xóa
+Admin->DeleteModal: Nhấn "Hủy"
+DeleteModal->SizeTable: Yêu cầu đóng modal
+SizeTable->Admin: Đóng modal, quay về danh sách bình thường

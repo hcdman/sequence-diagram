@@ -1,0 +1,46 @@
+title Xem danh sách kích thước
+
+actor "Quản trị viên" as Admin
+participant "Trang kích thước" as SizePage
+participant "Thanh tìm kiếm" as SearchBar
+participant "Bộ lọc chiều cao" as HeightFilter
+participant "Bộ lọc cân nặng" as WeightFilter
+participant "API Size" as SizeAPI
+database "Cơ sở dữ liệu" as Database
+
+Admin->SizePage: Vào trang quản lý kích thước (/sizes)
+
+SizePage->SizeAPI: Lấy thông tin danh sách kích thước
+SizeAPI->Database: Truy vấn dữ liệu từ cơ sở dữ liệu
+note over Database: SELECT * FROM sizes\nWHERE name LIKE '%keyword%'\nAND minHeight >= 10 AND maxHeight <= 220\nAND minWeight >= 20 AND maxWeight <= 200\nORDER BY id\nLIMIT 10 OFFSET 0
+
+Database-->>SizeAPI: Trả về dữ liệu
+
+SizeAPI-->>SizePage: Dữ liệu
+SizePage->Admin: Hiển thị bảng kích thước với thông tin
+note over SizePage: - Tên kích thước\n- Chiều cao min/max (cm)\n- Cân nặng min/max (kg)\n- Nút Sửa và Xóa
+
+note over Admin: Tìm kiếm kích thước
+Admin->SearchBar: Nhập "L" vào ô tìm kiếm
+Admin->SearchBar: Nhấn Enter
+SearchBar->SizeAPI: Lấy thông tin dữ liệu mới
+SizeAPI->Database:Truy vấn từ cơ sở dữ liệu
+Database-->>SizeAPI: Kích thước có chứa "L" (L, XL, Large...)
+SizeAPI-->>SearchBar: Danh sách kích thước phù hợp
+SearchBar->Admin: Hiển thị kết quả tìm kiếm
+
+note over Admin: Lọc theo chiều cao
+Admin->HeightFilter: Kéo slider từ 10-220cm thành 150-180cm
+HeightFilter->SizeAPI: Lấy thông tin dữ liệu mới
+SizeAPI->Database: Truy vấn từ cơ sở dữ liệu
+Database-->>SizeAPI: Kích thước trong khoảng chiều cao
+SizeAPI-->>HeightFilter: Danh sách đã lọc
+HeightFilter->Admin: Hiển thị kích thước phù hợp
+
+note over Admin: Lọc theo cân nặng
+Admin->WeightFilter: Kéo slider từ 20-200kg thành 60-90kg
+WeightFilter->SizeAPI: Lấy thông tin dữ liệu mới
+SizeAPI->Database: Truy vấn từ cơ sở dữ liệu
+Database-->>SizeAPI: Kích thước trong khoảng cân nặng
+SizeAPI-->>WeightFilter: Danh sách đã lọc
+WeightFilter->Admin: Hiển thị kích thước phù hợp với cân nặng

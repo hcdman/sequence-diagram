@@ -1,0 +1,47 @@
+title Thêm kích thước mới
+
+actor "Quản trị viên" as Admin
+participant "Trang danh sách" as SizePage
+participant "Form thêm" as AddSizeForm
+participant "Validation" as ValidationSystem
+participant "API Size" as SizeAPI
+database "Cơ sở dữ liệu" as Database
+participant "Thông báo" as Toast
+
+Admin->SizePage: Nhấn nút "Thêm kích thước" (+)
+SizePage->AddSizeForm: Chuyển đến trang thêm kích thước
+AddSizeForm->Admin: Hiển thị các thông tin cần điền
+
+note over Admin: Nhập thông tin kích thước
+Admin->AddSizeForm: Nhập các thông tin cần thiết
+
+note over Admin: Lưu kích thước
+Admin->AddSizeForm: Nhấn nút "Lưu"
+AddSizeForm->ValidationSystem: Kiểm tra tính xác thực của dữ liệu
+
+alt Validation thành công
+    
+    ValidationSystem->AddSizeForm: Xác thực thành công
+    
+    AddSizeForm->SizeAPI: Gửi yêu cầu tạo kích thước mới
+    SizeAPI->Database: Thêm kích thước mới vào cơ sở dữ liệu
+    
+    alt Thêm thành công
+        Database-->>SizeAPI: Trả về dữ liệu mới
+        SizeAPI-->>AddSizeForm: Dữ liệu mới
+        AddSizeForm->Toast: Thông báo thành công
+        Toast->Admin: "Thêm kích thước thành công!"
+        AddSizeForm->SizePage: Về trang kích thước chính
+        SizePage->Admin: Hiển thị kích thước mới trong danh sách
+    else Thêm thất bại (tên trùng lặp)
+        Database-->>SizeAPI: Lỗi 
+        SizeAPI-->>AddSizeForm: Kích thước đã tồn tại
+        AddSizeForm->Toast: Thông báo lỗi
+        Toast->Admin: Thông báo lỗi từ server (màu đỏ)
+    end
+    
+else Validation thất bại
+    ValidationSystem->Toast: Thông báo lỗi
+    Toast->Admin: "Vui lòng điền đầy đủ thông tin"
+    AddSizeForm->Admin: Form vẫn hiển thị để sửa lỗi
+end

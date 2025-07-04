@@ -1,0 +1,50 @@
+title Chỉnh sửa kích thước
+
+actor "Quản trị viên" as Admin
+participant "Bảng kích thước" as SizeTable
+participant "Form chỉnh sửa" as EditSizeForm
+participant "API Kích thước" as SizeAPI
+database "Cơ sở dữ liệu" as Database
+participant "Thông báo" as Toast
+
+participant Tranh chính kích thước
+
+Admin->SizeTable: Nhấn nút "Sửa"
+SizeTable->EditSizeForm: Chuyển tới trang chỉnh sửa
+
+note over EditSizeForm: Tải dữ liệu kích thước hiện tại
+EditSizeForm->SizeAPI: Lấy thông tin kích thước
+SizeAPI->Database: Truy vấn cơ sở dữ liệu
+Database-->>SizeAPI: Trả về dữ liệu
+
+SizeAPI-->>EditSizeForm: Trả về dữ liệu
+EditSizeForm->Admin: Hiển thị form với dữ liệu đã điền sẵn
+
+note over Admin: Chỉnh sửa thông tin
+Admin->EditSizeForm: Thay đổi thông tin
+
+note over Admin: Lưu thay đổi
+Admin->EditSizeForm: Nhấn nút "Lưu"
+
+alt Validation thành công
+    
+    EditSizeForm->SizeAPI: Cập nhật thông tin\n
+    SizeAPI->Database: Truy vấn cơ sở dữ liệu
+    
+    alt Cập nhật thành công
+        Database-->>SizeAPI: Xác nhận cập nhật 1 dòng\n
+        SizeAPI-->>EditSizeForm: Xác nhận cập nhật
+        EditSizeForm->Toast: Thông báo thành công
+        Toast->Admin: "Cập nhật kích thước thành công!" (màu xanh, 1 giây)
+        EditSizeForm->Tranh chính kích thước: Chuyển về trang chính
+        Tranh chính kích thước->Admin: Hiển thị kích thước đã cập nhật trong danh sách
+    else Cập nhật thất bại
+        Database-->>SizeAPI: Lỗi cập nhật (có thể do constraint)
+        SizeAPI-->>EditSizeForm: Cập nhật thất bại
+        EditSizeForm->Toast: Thông báo lỗi
+        Toast->Admin: Thông báo lỗi từ server (màu đỏ)
+    end
+else Validation thất bại
+    EditSizeForm->Toast: Thông báo lỗi validation
+    Toast->Admin: Hiển thị thông báo lỗi validation
+end
