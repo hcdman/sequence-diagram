@@ -1,0 +1,35 @@
+title Xem danh sách màu sắc
+
+actor "Quản trị viên" as Admin
+participant "Trang màu sắc" as ColorPage
+participant "Thanh tìm kiếm" as SearchBar
+participant "Bảng màu sắc" as ColorTable
+participant "API màu sắc" as ColorAPI
+database "Cơ sở dữ liệu" as Database
+
+Admin->ColorPage: Truy cập trang quản lý màu sắc (/colors)
+ColorPage->ColorAPI: Lấy danh sách màu sắc (getColors)
+ColorAPI->Database: SELECT * FROM colors với phân trang (page, size)
+Database-->>ColorAPI: Danh sách màu sắc và tổng số trang
+ColorAPI-->>ColorPage: Dữ liệu màu sắc
+ColorPage->ColorTable: Hiển thị bảng màu sắc
+
+note over ColorTable: Hiển thị thông tin màu sắc
+ColorTable->Admin: Hiển thị từng màu với:
+note over ColorTable: - Tên màu\n- Mã màu\n- Nút "Chỉnh sửa" và "Xóa"
+
+note over Admin: Tìm kiếm màu sắc
+Admin->SearchBar: Nhập từ khóa tìm kiếm tên màu
+Admin->SearchBar: Nhấn Enter
+SearchBar->ColorAPI: Tìm kiếm màu sắc theo tên
+ColorAPI->Database: SELECT WHERE name LIKE '%keyword%'
+Database-->>ColorAPI: Kết quả tìm kiếm
+ColorAPI-->>SearchBar: Danh sách màu phù hợp
+SearchBar->Admin: Hiển thị kết quả tìm kiếm
+
+note over Admin: Phân trang
+Admin->ColorPage: Nhấn nút chuyển trang
+ColorPage->ColorPage: Cập  nhật trang hiện tại
+ColorPage->ColorAPI: Lấy dữ liệu trang mới
+ColorAPI-->>ColorPage: Màu sắc của trang mới
+ColorPage->Admin: Hiển thị màu sắc trang mới

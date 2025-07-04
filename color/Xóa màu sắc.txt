@@ -1,0 +1,37 @@
+title Xóa màu sắc
+
+actor "Quản trị viên" as Admin
+participant "Bảng màu sắc" as ColorTable
+participant "Modal xác nhận" as DeleteModal
+participant "API màu sắc" as ColorAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->ColorTable: Nhấn nút "Xóa"
+ColorTable->DeleteModal: Hiển thị modal
+DeleteModal->Admin: "Bạn có chắc chắn muốn xóa màu sắc này?"
+
+note over Admin: Xác nhận xóa
+Admin->DeleteModal: Nhấn "Xác nhận xóa"
+DeleteModal->ColorAPI: Xóa màu sắc
+ColorAPI->Database: Kiểm tra màu có đang được sử dụng không
+
+alt Màu không được sử dụng
+    ColorAPI->Database: DELETE FROM colors WHERE id = {colorId}
+    Database-->>ColorAPI: Xác nhận xóa thành công
+    ColorAPI-->>DeleteModal: Phản hồi thành công
+    DeleteModal->Toast: "Xóa màu sắc thành công!"
+    Toast->Admin: Thông báo thành công màu xanh
+    DeleteModal->ColorTable: Đóng modal
+    ColorTable->Admin: Hiển thị danh sách đã cập nhật (không còn màu đã xóa)
+else Màu đang được sử dụng
+    Database-->>ColorAPI: Lỗi (màu đang được sử dụng trong sản phẩm)
+    ColorAPI-->>DeleteModal: Thông báo không thể xóa
+    DeleteModal->Toast: "Không thể xóa màu đang được sử dụng"
+    Toast->Admin: Thông báo lỗi màu đỏ
+end
+
+note over Admin: Hủy xóa
+Admin->DeleteModal: Nhấn "Hủy"
+DeleteModal->ColorTable: Đóng modal
+ColorTable->Admin: Đóng modal, quay về danh sách bình thường

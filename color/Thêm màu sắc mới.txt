@@ -1,0 +1,49 @@
+title Thêm màu sắc mới
+
+actor "Quản trị viên" as Admin
+participant "Trang màu sắc" as ColorPage
+participant "Form thêm màu" as AddColorForm
+participant "Color Picker" as ColorPicker
+participant "API màu sắc" as ColorAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+Admin->ColorPage: Nhấn nút "Thêm màu sắc" (+)
+ColorPage->AddColorForm: Chuyển đến /colors/add
+AddColorForm->Admin: Hiển thị form trống
+
+note over Admin: Nhập thông tin màu sắc
+Admin->AddColorForm: Nhập tên màu sắc
+Admin->ColorPicker: Chọn màu từ color picker
+ColorPicker->AddColorForm: Cập nhật màu
+Admin->AddColorForm: Hoặc nhập mã màu thủ công
+
+note over AddColorForm: Xem trước màu sắc
+AddColorForm->Admin: Hiển thị preview màu:
+note over AddColorForm: - Hình vuông\n- Hiển thị mã màu bên cạnh
+
+note over Admin: Lưu màu sắc mới
+Admin->AddColorForm: Nhấn nút "Lưu"
+AddColorForm->AddColorForm: Kiểm tra validation (tên và mã màu không trống)
+
+alt Thông tin hợp lệ
+    AddColorForm->ColorAPI: Thêm màu mới
+    ColorAPI->Database: INSERT INTO colors (name, code) VALUES (colorName, colorCode)
+    
+    alt Thêm thành công
+        Database-->>ColorAPI: Xác nhận tạo màu thành công
+        ColorAPI-->>AddColorForm: Phản hồi thành công
+        AddColorForm->Toast: "Thêm màu sắc thành công!"
+        Toast->Admin: Thông báo màu xanh, tự động đóng sau 1 giây
+        AddColorForm->ColorPage: Quay về danh sách
+        ColorPage->Admin: Hiển thị màu mới trong danh sách
+    else Thêm thất bại
+        Database-->>ColorAPI: Lỗi (tên màu đã tồn tại)
+        ColorAPI-->>AddColorForm: Thông báo lỗi
+        AddColorForm->Toast: Hiển thị thông báo lỗi
+        Toast->Admin: Thông báo màu đỏ với nội dung lỗi
+    end
+else Thông tin không hợp lệ
+    AddColorForm->Toast: "Vui lòng điền đầy đủ thông tin"
+    Toast->Admin: Hiển thị thông báo validation
+end

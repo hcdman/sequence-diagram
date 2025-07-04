@@ -1,0 +1,58 @@
+title Chỉnh sửa màu sắc
+
+actor "Quản trị viên" as Admin
+participant "Bảng màu sắc" as ColorTable
+participant "Form chỉnh sửa" as EditColorForm
+participant "Color Picker" as ColorPicker
+participant "API màu sắc" as ColorAPI
+participant "Thông báo" as Toast
+database "Cơ sở dữ liệu" as Database
+
+participant "Trang chính" as ColorPage
+
+Admin->ColorTable: Nhấn nút "Chỉnh sửa"
+ColorTable->EditColorForm: Chuyển đến trang chỉnh sửa
+
+note over EditColorForm: Tải dữ liệu màu hiện tại
+EditColorForm->EditColorForm: Lấy id từ URL params
+EditColorForm->ColorAPI: Lấy thông tin màu theo ID
+ColorAPI->Database: SELECT * FROM colors WHERE id = {id}
+Database-->>ColorAPI: Thông tin chi tiết màu sắc
+ColorAPI-->>EditColorForm: Trả về dữ liệu
+
+EditColorForm->Admin: Hiển thị form với dữ liệu đã điền sẵn
+
+note over Admin: Chỉnh sửa thông tin màu
+Admin->EditColorForm: Cập nhật tên màu
+Admin->ColorPicker: Chọn màu mới từ color picker
+ColorPicker->EditColorForm: Cập nhật mã màu
+Admin->EditColorForm: Hoặc nhập mã màu mới
+
+note over EditColorForm: Preview màu mới
+EditColorForm->Admin: Hiển thị preview với màu đã cập nhật
+
+note over Admin: Lưu thay đổi
+Admin->EditColorForm: Nhấn nút "Lưu"
+EditColorForm->EditColorForm: Kiểm tra validation
+
+alt Thông tin hợp lệ
+    EditColorForm->ColorAPI: Cập nhật màu
+    ColorAPI->Database: UPDATE colors SET name=?, code=? WHERE id=?
+    
+    alt Cập nhật thành công
+        Database-->>ColorAPI: Xác nhận cập nhật thành công
+        ColorAPI-->>EditColorForm: Phản hồi thành công
+        EditColorForm->Toast: "Cập nhật màu sắc thành công!"
+        Toast->Admin: Thông báo thành công, tự động đóng sau 1 giây
+        EditColorForm->ColorPage: Quay về danh sách
+        ColorPage->Admin: Hiển thị màu đã cập nhật
+    else Cập nhật thất bại
+        Database-->>ColorAPI: Lỗi cập nhật
+        ColorAPI-->>EditColorForm: Thông báo lỗi
+        EditColorForm->Toast: Hiển thị thông báo lỗi
+        Toast->Admin: Thông báo màu đỏ
+    end
+else Thông tin không hợp lệ
+    EditColorForm->Toast: "Vui lòng điền đầy đủ thông tin"
+    Toast->Admin: Hiển thị thông báo validation
+end
